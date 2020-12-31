@@ -27,7 +27,6 @@ def fetch_options_data(ticker: str, date: int=None):
     url = f'https://finance.yahoo.com/quote/{ticker}/options?p={ticker}'
     if date is not None:
         url += f'&date={date}'
-    print(url)
     resp = requests.get(url)
     if resp.status_code != 200:
         print('Failed to fetch options data')
@@ -69,7 +68,7 @@ def get_option_dates(content: bytes):
 
 def parse_table(table):
     rows = table.find_all('tr', re.compile('data-row[0-9]+'))
-    options = dict()
+    options = {'itm': {}, 'otm': {}}
     for row in rows:
         option = {
                 'strike': get_value(row, 'data-col2'),
@@ -83,7 +82,11 @@ def parse_table(table):
             if v is None:
                 print(f'Skipping due to invalid {k}')
                 continue
-        options[option['strike']] = option
+        state = in_the_money(row)
+        if state is None:
+            continue
+        key = 'itm' if state else 'otm'
+        options[key][option['strike']] = option
     return options
 
 
@@ -101,7 +104,21 @@ def get_value(row, key: str):
         return None
 
 
+def in_the_money(row):
+    try:
+        return 'in-the-money' in row['class']
+    except Exception as e:
+        print(f'Failed to get the itm/otm value')
+        return None
+
+
 def dump(date, content):
     with open(f'{date}.html', 'w') as f:
         f.write(str(content))
         f.close()
+
+def load(filename: str):
+    with open(filename, 'r') as f:
+        content = f.read()
+        f.close()
+    return content
