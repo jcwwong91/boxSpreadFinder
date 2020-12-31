@@ -105,11 +105,17 @@ def get_value(row, key: str):
 
 
 def in_the_money(row):
+    """Returns true if in the money for processing"""
     try:
         return 'in-the-money' in row['class']
     except Exception as e:
         print(f'Failed to get the itm/otm value')
         return None
+
+
+def get_cost(option):
+    """Estimates the cost to purchase a contract"""
+    return (option['ask'] + option['bid']) / 2
 
 
 def dump(date, content):
