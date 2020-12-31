@@ -1,11 +1,13 @@
+import datetime
+import logging
 from options import get_cost
 
 
 def process(data):
     for date, v in data.items():
-        process_date(v)
+        process_date(date, v)
 
-def process_date(data):
+def process_date(date, data):
     calls = data.get('calls')
     puts = data.get('puts')
     if not calls or not puts:
@@ -18,9 +20,9 @@ def process_date(data):
     strike_prices = set(list(itm_calls.keys()) + list(otm_calls.keys()) + list(itm_puts.keys()) + list(otm_puts.keys()))
     for lower in strike_prices:
         for upper in strike_prices:
-            check_bounds(lower, upper, itm_calls, otm_calls, itm_puts, otm_puts)
+            check_bounds(date, lower, upper, itm_calls, otm_calls, itm_puts, otm_puts)
 
-def check_bounds(lower: int, upper: int, itm_calls, otm_calls, itm_puts, otm_puts):
+def check_bounds(date: int, lower: int, upper: int, itm_calls, otm_calls, itm_puts, otm_puts):
     if upper <= lower:
         return
     itm_call = itm_calls.get(lower)
@@ -28,13 +30,14 @@ def check_bounds(lower: int, upper: int, itm_calls, otm_calls, itm_puts, otm_put
     otm_put = otm_puts.get(lower)
     itm_put = itm_puts.get(upper)
     if itm_call is None or otm_call is None or otm_put is None or itm_put is None:
-        print(f'Missing option for {lower} -> {upper}: itm_call: {itm_call} otm_call: {otm_call} otm_put: {otm_put} itm_put: {itm_put}')
+        logging.debug(f'Missing option for {lower} -> {upper}: itm_call: {itm_call} otm_call: {otm_call} otm_put: {otm_put} itm_put: {itm_put}')
         return
     cost = (get_cost(itm_call) + get_cost(itm_put)) * 100
     revenue = (get_cost(otm_call) + get_cost(otm_put)) * 100
     trade_costs = cost - revenue
     spread = (upper - lower) * 100
-    print(f'{lower} -> {upper}: Profit = {spread - trade_costs}')
+    date2 = datetime.datetime.fromtimestamp(date)
+    print(f'expiration: {date2} {lower} -> {upper}: Profit = {spread - trade_costs}')
 
 
 def test():
@@ -44,4 +47,4 @@ def test():
     otm_calls = {53: {'bid': 1.23, 'ask': 1.23}}
     itm_puts = {53: {'bid': 2.69, 'ask': 2.69}}
     otm_puts = {49: {'bid': 0.97, 'ask': 0.97}}
-    check_bounds(lower, upper, itm_calls, otm_calls, itm_puts, otm_puts)
+    check_bounds(date, lower, upper, itm_calls, otm_calls, itm_puts, otm_puts)

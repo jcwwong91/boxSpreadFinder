@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import pprint
 
 
-def process_ticker(ticker: str):
+def get_options_data(ticker: str):
     content = fetch_options_data(ticker)
     dates = get_option_dates(content)
     data = dict()
