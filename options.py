@@ -1,3 +1,4 @@
+import datetime
 import re
 import requests
 import typing
@@ -10,8 +11,12 @@ import pprint
 def get_options_data(ticker: str):
     content = fetch_options_data(ticker)
     dates = get_option_dates(content)
+    now = datetime.datetime.now()
     data = dict()
     for date in dates:
+        dt = datetime.datetime.fromtimestamp(date)
+        if dt > now + datetime.timedelta(days=14):
+            continue
         if len(data) != 0:
             content = fetch_options_data(ticker, date)
         calls, puts = parse_options_data(content)

@@ -3,11 +3,11 @@ import logging
 from options import get_cost
 
 
-def process(data):
+def process(data, show_all=False):
     for date, v in data.items():
-        process_date(date, v)
+        process_date(date, v, show_all=show_all)
 
-def process_date(date, data):
+def process_date(date, data, show_all=False):
     calls = data.get('calls')
     puts = data.get('puts')
     if not calls or not puts:
@@ -20,9 +20,9 @@ def process_date(date, data):
     strike_prices = set(list(itm_calls.keys()) + list(otm_calls.keys()) + list(itm_puts.keys()) + list(otm_puts.keys()))
     for lower in strike_prices:
         for upper in strike_prices:
-            check_bounds(date, lower, upper, itm_calls, otm_calls, itm_puts, otm_puts)
+            check_bounds(date, lower, upper, itm_calls, otm_calls, itm_puts, otm_puts, show_all=show_all)
 
-def check_bounds(date: int, lower: int, upper: int, itm_calls, otm_calls, itm_puts, otm_puts):
+def check_bounds(date: int, lower: int, upper: int, itm_calls, otm_calls, itm_puts, otm_puts, show_all=False):
     if upper <= lower:
         return
     itm_call = itm_calls.get(lower)
@@ -36,8 +36,10 @@ def check_bounds(date: int, lower: int, upper: int, itm_calls, otm_calls, itm_pu
     revenue = (get_cost(otm_call) + get_cost(otm_put)) * 100
     trade_costs = cost - revenue
     spread = (upper - lower) * 100
-    date2 = datetime.datetime.fromtimestamp(date)
-    print(f'expiration: {date2} {lower} -> {upper}: Profit = {spread - trade_costs}')
+    profit = spread - trade_costs
+    if profit > 0 or show_all:
+        date2 = datetime.datetime.fromtimestamp(date)
+        print(f'expiration: {date2} {lower} -> {upper}: Profit = {spread - trade_costs}')
 
 
 def test():

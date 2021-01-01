@@ -14,9 +14,10 @@ def test_flow():
 
 @click.command()
 @click.option('-t', '--ticker', default=None, help='The ticker to pull data for')
-def run(ticker: str):
+@click.option('--show-all', default=False, help='Set to show all profit margins')
+def run(ticker: str, show_all: bool):
     data = get_options_data(ticker)
-    process(data)
+    process(data, show_all=show_all)
 
 
 if __name__ == '__main__':
